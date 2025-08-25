@@ -1,72 +1,64 @@
 # Locked With Me
 
-A **local co-op horror game for Android** I built in Unity with C#.  
-Escape a locked house, survive the AI enemies and destroy the dam that's trapping you on the island!  
-Playable **solo** or with a friend in 10–15 minutes.
-
-I originally built this game for a university class, but i decided to treat it as a **larger-scope project** and expanded it well beyond the requirements after the submission and managed to earn a **19/20 grade**.
+A **local co-op horror game for Android** built in Unity with C#.  
+Playable in **singleplayer** or **local co-op**, the game challenges players to escape a locked house, survive AI enemies and ultimately destroy the dam trapping them on an island.
 
 ---
 
-## Core Features
+## Overview
 
-### Gameplay
-- Singleplayer or **local co-op** (Mirror Networking)
-- **Enemy AI** that reacts to noise and searches dynamically
-- **Hiding mechanic** (chests) to avoid the enemies' detection
-- Indoor & outdoor exploration with atmospheric swamp
-- Final boss fight with **rocket launcher** + dam destruction
-
-### Technical
-- Unity URP and use of LODs for better performance.
-- **Light probes** & baked lightmaps for indoor lighting
-- **Occlusion culling** for render optimization
-- Custom terrain & main house modeled in Blender (by myself)
-- Progressive world loading for mobile performance
-
-### Atmosphere & Audio
-- Dynamic music by location (tense creepy indoor vs. curious mysterious outdoor)
-- Layered ambient audio: rain, waves, swamp wildlife and distant creatures
-- Adaptive sound cues to guide player awareness
+Originally a small university assignment, I expanded it into a fully playable mobile game.  
+**Problem:** Delivering AI, networking and atmosphere on limited Android hardware.  
+**Method:** Implemented dynamic AI (sound/sight states), Mirror Networking for local co-op and mobile-focused optimizations (LOD, occlusion culling, progressive world loading).  
+**Outcome:** A polished 10–15 minute horror game that runs smoothly on Android devices.
 
 ---
 
-## Built With
-- **Unity (C#)**
-- **Mirror Networking**
-- **Blender** 
+## Technical Contributions
+
+- **AI & Gameplay Systems**
+  - Enemy AI with sound and sight detection, dynamic searching and stealth mechanics.
+  - Multiplayer-synced boss fight mechanics and player inventory system.
+
+- **Networking**
+  - Local co-op using **Mirror Networking**, including player sync, interaction and game state management.
+
+- **Performance Optimization**
+  - Unity URP, LODs and occlusion culling for mobile performance.
+  - Progressive terrain loading.
+  - Light probes & baked lightmaps for efficient indoor lighting.
+
+- **Content Creation**
+  - I personally modeled the **main house** in Blender.
+  - Integrated free audio/visual effects with adaptive soundscapes (rain, waves, swamp wildlife, dynamic music).
 
 ---
 
-## My Role
-- All of the programming: player logic, AI, multiplayer networking
-- Built the terrain and the UI using free assets.
-- Integrated audio/visual effects
-- Modeled the main house in Blender
+## Code Structure
 
----
+Core scripts in [`Scripts`](Scripts):
 
-## Explore the Code
-Core scripts are in [`Scripts`](Scripts):
-
-- **UIManager.cs** – Menus, network discovery, terrain spawning, interaction system
-- **PlayerMovement.cs** – Full player controller, animations, inventory references, multiplayer sync
-- **NPCScript.cs** – AI pathfinding, sight/sound detection, state management
+- **UIManager.cs** – Menus, network discovery, interaction system
+- **PlayerMovement.cs** – Player controller, animations, inventory, multiplayer sync
+- **NPCScript.cs** – AI pathfinding, perception (sound/sight), state management
 - **GameManager.cs** – Game state, player tracking, victory conditions
 
 ---
 
-## ▶ Play the Game
+## ▶ Game
+
 **[Play on Itch.io](https://yourgame.itch.io/locked-with-me)**
 
 ---
 
-## GIFs
-| Hiding from AI | Unlocking the Door | Using the RocketLauncher | Destroying the Dam |
-|----------------|--------------------|---------------------|--------------------|
-| ![Inside the Chest](gif/gif1.png) | ![Using the Key on the Lock](gif/gif2.png) | ![Killing the Enemies](imagifges/gif3.png) | ![Dam explosion](gif/gif4.png)
+## Media
+
+| AI Stealth | Lock/Key Interaction | Boss Fight | Dam Destruction |
+|------------|----------------------|------------|-----------------|
+| ![Inside the Chest](gif/gif1.png) | ![Using the Key](gif/gif2.png) | ![Boss Fight](gif/gif3.png) | ![Explosion](gif/gif4.png) |
 
 ---
 
 ## Connect
+
 **LinkedIn:** [Rafael Faustino](https://www.linkedin.com/in/rgtdfaustino)
