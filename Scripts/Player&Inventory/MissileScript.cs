@@ -22,7 +22,7 @@ public class MissileScript : NetworkBehaviour
     }
 
     private IEnumerator WaitForSystemEnd() {
-        yield return new WaitForSeconds(3); // tempo que o sistema de partículas tem de vida
+        yield return new WaitForSeconds(3); // partycle system's time of life
 
         if (isServer){
             if (hitNPC != null) {
@@ -53,25 +53,21 @@ public class MissileScript : NetworkBehaviour
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, 2.5f);
 
         foreach (Collider hitCollider in hitColliders) {
-            if (hitCollider.gameObject == gameObject) continue; // o collider do próprio míssil n tava a deixar este collider funcionar bem
+            if (hitCollider.gameObject == gameObject) continue; // the missile's collider wasn't letting this collider work well
 
-            // o código não estava a apanhar o script por algum motivo então procura-se por ele no gajo inteiro
-            // acho eu
-            // n tenho a certeza, mas quando fiz isto funcionou logo
-            // mas acho que foi coincidência
+            // i dont think the code was catching the script for some reason so i tried to find in on the entirety of the character, im not sure, but it worked
             NPCScript hitNPC = hitCollider.GetComponent<NPCScript>();
             EnemyHealth enemyHealth = hitCollider.GetComponent<EnemyHealth>();
             DamHealth damHealth = hitCollider.GetComponent<DamHealth>();
 
-            // primeiro corremos a animação dele morrer e fazemos com que ele não faça mais barulho e depois dos 3 segundos para o sistema de partículas se destruir
-            // é que também destruímos o NPC
+            // first i run the animation of him dying and then make it so he doesn't make any noise and then after the 3 seconds i also destroy the character
             if (hitNPC != null) {
                 if (enemyHealth != null) {
                     enemyHealth.CmdTakeDamage(25);
 
                 } else {
                     hitNPC.CmdDie();
-                    hitNPC.StopAllCoroutines(); // parar corrotinas tipo a do random growl
+                    hitNPC.StopAllCoroutines(); // stop corroutines like random growl
                 }
             }
 
@@ -87,7 +83,7 @@ public class MissileScript : NetworkBehaviour
     private void OnCollisionEnter(Collision collision) {
         if (!isServer) return;
 
-        // temos de ver se já foi disparado senão ele dá destroy assim que começa o jogo porque inicia com uma colisão
+        // i have to check if it's been already fired or else it destroys right when the game starts because it starts with a collision
         if (wasShot && collision.transform.CompareTag("rocketLauncher") == false && collision.transform.name != "rocketLauncher" 
             && !firstHit && collision.transform.gameObject.CompareTag("Player") == false) {
 

@@ -2,13 +2,13 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // não queremos que esta classe seja singleton porque vamos ter dois jogadores
-// se fôsse um singleton então mudar uma câmara de um jogador implicaria mudar a câmara de todos os jogadores
+// i dont want this class to be singleton because there'll be two players each with different informations
 public class CameraScript : MonoBehaviour {
     private float rotationSpeedXAxis = 10f;
     private float rotationSpeedYAxis = 5f;
     private float yaw = 0.0f;
     private float pitch = 0.0f;
-    private Rect rotationArea = new Rect(0.5f, 0f, 0.5f, 1f); // lado direito do ecrã
+    private Rect rotationArea = new Rect(0.5f, 0f, 0.5f, 1f); // right side of the screen
 
     private Camera cameraComponent;
 
@@ -27,23 +27,23 @@ public class CameraScript : MonoBehaviour {
 
     private void Awake() {
         cameraComponent = gameObject.GetComponentInChildren<Camera>();
-        Destroy(GameObject.Find("StartView")); // câmara do main menu
+        Destroy(GameObject.Find("StartView")); // main menu's camera
     }
 
     void LateUpdate() {
-        // se estivermos a dar spectate não podemos mexer na câmara
+        // if spectating then i cant move the camera
         if (isSpectating) {
             return;
         }
 
         if (canRotate == false) {
-            // isto faz com que a câmara não rodopie quando canRotate é falso devido aos últimos valores do pitch e yaw
-            transform.rotation = Quaternion.Euler(pitch, yaw, 0.0f); // fica na última rotação que ficou
+            // this makes so that the camera wont rotate random when canRotate is false due to the last values of pitch and yaw
+            transform.rotation = Quaternion.Euler(pitch, yaw, 0.0f); // remains in the last rotation it had
 
             return;
         }
 
-        // para todos os toques no ecrã vamos procurar pelos que ocorrem no lado direito do ecrã e num máximo de 60 graus para cima e baixo
+        // for every touch on the screen i'll find the ones that ocurred on the right side of the screen and set a max of 60 degrees upwards and downwards
         for (int i = 0; i < Input.touchCount; i++) {
             Touch touch = Input.GetTouch(i);
 
@@ -54,7 +54,7 @@ public class CameraScript : MonoBehaviour {
             }
         }
 
-        Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f); // apanhar o centro do ecrã (onde a mira está)
+        Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f); // center of the screen is where the aim is
         Ray ray = cameraComponent.ScreenPointToRay(screenCenter);
 
         Quaternion rotation = Quaternion.Euler(pitch, yaw, 0.0f);
@@ -66,7 +66,7 @@ public class CameraScript : MonoBehaviour {
         } else {
             if (Physics.Raycast(ray, out RaycastHit hit, 4f)) {
                 string tag = hit.transform.gameObject.tag;
-                // se for um dos items que podemos apanhar então podemos dar enable do botão senão metemos disabled
+                // if it's one of the items that i can grab then i can enable the button
                 bool shouldEnable = tag == "chest" || tag == "door" || tag == "key" || tag == "lock" || tag == "rocketLauncher" || tag == "missile";
                 interactItemButton.interactable = shouldEnable;
 

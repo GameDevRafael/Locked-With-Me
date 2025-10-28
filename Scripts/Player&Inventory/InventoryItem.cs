@@ -3,16 +3,15 @@ using UnityEngine;
 
 public class InventoryItem : MonoBehaviour {
 
-    // ITENS GERAIS
     public int quantity;
     public string itemName;
 
 
     /*
-     * porque só o servidor é que deve instanciar objetos, se for um cliente que quer spawnar mísseis tem de comunicar com 
-     * ele porque é um cliente, mas se já for o host então não faz mal
-     * mas como não quero fazer esta classe extender de networkBehaviour para não ter de meter um network identity em todos os gameObjects "item" que têm este script
-     * faço um script singleton que sirva para spawnar objetos na rede e que seja sempre command para não termos de distinguir entre host e cliente
+     * the server is the one that should instance objects
+     * if it's a client that wants to spawn missiles it has to communicate with the server, but if it's the host then it's fine
+     * but i dont want this class to extand network behaviour so i dont have to place a network identity on all "item" game objects that have this script
+     * so i make a singleton class that can spawn objects on the network
      */
     public void Use(GameObject player) {
         NetworkSpawner.Instance.CmdSpawnMissile(player);

@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class PortalScript : NetworkBehaviour {
 
-    // ele começava com setactive a true embora na cena esteja a false, isto é porque o server instancia tudo e mete a ativo
-    // então damos override deste método e metemos se active a falso
+    // it started with set active to true even though in the scene it's false, this is because the server instances everything and sets all to active
+    // so i overrode it with this method
     public override void OnStartClient() {
         gameObject.SetActive(false);
     }

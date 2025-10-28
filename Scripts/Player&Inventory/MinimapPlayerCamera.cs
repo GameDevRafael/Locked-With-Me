@@ -15,6 +15,7 @@ public class MinimapPlayerCamera : MonoBehaviour
 
 
     void LateUpdate() {
-        transform.rotation = Quaternion.Euler(90, 0, 0); // não quero que o minimapa rode quando o jogador rode, quero fique tudo a zeros exceto o X (para olhar para baixo)
+        // i dont want the minimap to rotate when the player rotates, i want it to be all zeros (except for X axis for it to be looking down)
+        transform.rotation = Quaternion.Euler(90, 0, 0);
     }
 }

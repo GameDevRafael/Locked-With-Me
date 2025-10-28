@@ -14,7 +14,7 @@ public class GramophoneScript : NetworkBehaviour {
 
     private IEnumerator PlaySoundPeriodically() {
         while (true) {
-            yield return new WaitForSeconds(60f); // meter 60 segundos de espera para não ser muito repetitivo
+            yield return new WaitForSeconds(60f); // 60 seconds of wait so it's not too repetitive
             SoundManager.Instance.CmdPlaySound(gameObject);
         }
     }

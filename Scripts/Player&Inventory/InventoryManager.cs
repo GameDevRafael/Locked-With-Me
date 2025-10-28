@@ -47,12 +47,14 @@ public class InventoryManager : MonoBehaviour {
     private GameObject FindStackableSlot(ItemData itemData) {
         foreach(GameObject slot in inventorySlots) {
             Transform item = slot.transform.Find("Item");
-            if (item.gameObject.activeSelf == false) continue; // se não estiver ativo é porque não sería um slot em que podemos juntar o item que queremos então seguimos
 
-            // metemos true porque os gameObjects poderão estar inativos e assim iria retornar null
+            // if is isn't active it's because it wouldn't be a slot in which i could join the item that i want so we continue
+            if (item.gameObject.activeSelf == false) continue;
+
+            // it's true because the gameObjects might be inactive and then it would return null
             InventoryItem inventoryItem = item.GetComponentInChildren<InventoryItem>(true);
 
-            // como todos os itens são de quantidade 1, não precisamos de encher até ficar cheio e procurar por outro slot para o resto
+            // due to all of the items having quantity 1 i dont have to fill it till it's full and search for another slot for the rest
             if (inventoryItem.itemName == itemData.name && inventoryItem.quantity + itemData.quantity <= itemData.maxStackSize) {
                 inventoryItem.quantity += itemData.quantity;
                 return slot;

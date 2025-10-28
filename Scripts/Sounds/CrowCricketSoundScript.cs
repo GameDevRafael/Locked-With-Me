@@ -2,7 +2,7 @@ using System.Collections;
 using Mirror;
 using UnityEngine;
 
-public class CrowCricketSoundScript : NetworkBehaviour { // o RpcClient precisa de um gameobject com identity
+public class CrowCricketSoundScript : NetworkBehaviour { // RpcClient needs a gameObject with identity
     private bool canPlay = true;
 
     public void OnTriggerEnter(Collider other) {
@@ -11,8 +11,8 @@ public class CrowCricketSoundScript : NetworkBehaviour { // o RpcClient precisa 
         }
     }
 
-
-    // assim o som só toca num mínimo intervalo de 20 segundos, mesmo se o jogador entrar e sair repetidamente não vai ouvir se não tiverem passado 20 segundos
+    // like this the sound only plays at a minimum interval of 20 seconds
+    // even if the player enters and leaves repeatedly it won't hear it if hasn't passed 20 seconds yet
     private IEnumerator PlayAgainAfterTime(float time) {
         canPlay = false;
         SoundManager.Instance.CmdPlaySound(gameObject);

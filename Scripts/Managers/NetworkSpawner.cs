@@ -24,27 +24,25 @@ public class NetworkSpawner : NetworkBehaviour {
 
 
     /*
-     * os clientes também devem conseguir spawnar mísseis porque podem apanhar um rocketlauncher e apanhar mísseis, então para que os clientes possam usar este método temos de dizer que 
-     * o Command não requer autoridade do host/server
+     * the clients should be able to spawn missiles because they can get a rocket launcher and missiles, so for that i need to use command that doesnt require authority
      */
     [Command(requiresAuthority = false)]
     public void CmdSpawnMissile(GameObject player) {
         firePosition = player.transform.GetComponentInChildren<FirePositionScript>().transform;
 
-        Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f); // apanhar o centro do ecrã (onde a mira está)
-        Ray ray = player.GetComponentInChildren<Camera>().ScreenPointToRay(screenCenter); // mandamos um ray para o centro e para fazermos isso temos de usar a câmara para sabermos onde o meio do ecrã está a apontar
+        Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f); // grab center of screen (where the aim is at)
+        // send an array to the center and to do that i need to use the camera to know where the middle of the screen is pointing at
+        Ray ray = player.GetComponentInChildren<Camera>().ScreenPointToRay(screenCenter);
 
-        if (Physics.Raycast(ray, out RaycastHit hit)) {
             // a direção do tiro vai ser no sítio onde a mira está a conincidir (menos esta posição para termos a direção porque é um vetor)
             direction = (hit.point - firePosition.position).normalized;
 
         } else {
-            // se a mira não estiver a bater num local (por ex a olhar para o céu) então a direção do tiro segue simplesmente em frente
-            // ou seja, em vez de ir desde o fire position apra o meio do ecrã só vai em frente (porque não estamos a calcular o vetor entre as duas posições)
+            // if the ray didn't get a hit it means probably the player is looking at the sky so the shot simply goes forward instead
             direction = ray.direction.normalized;
         }
 
-        // para onde o míssil vai estar a olhar/apontar
+        // to where the missile is going to be pointing at
         firePosition.rotation = Quaternion.LookRotation(direction);
 
         GameObject missile = Instantiate(missilePrefab, firePosition.position, firePosition.rotation);
@@ -53,9 +51,9 @@ public class NetworkSpawner : NetworkBehaviour {
 
         missile.GetComponent<MissileScript>().wasShot = true;
 
-        // o modo default de AddForce é Force que adiciona Force ao longo do tempo
-        // o modo Impulse adiciona força logo no momento como se algo lhe tivesse batido com força e tivesse logo um arranque, que é o que queremos
-        // o míssil não passa pelas paredes porque usamos rigidbody contínuo e não discreto (checka colisões entre frames e não a cada frame)
+        // the default mode of AddForte is Force that adds more Force overtime
+        // Impulse adds Force right then and there as if something knocked him with force so it gets a boost, which is what i want
+        // the missiles doesn't go through walls because i use rigidbody continuo and not discrete (it checks collisions between frames and not frame to frame)
         missile.GetComponent<Rigidbody>().AddForce(direction * 50, ForceMode.Impulse);
         missile.transform.Rotate(0, -90, 0);
     }
@@ -63,7 +61,7 @@ public class NetworkSpawner : NetworkBehaviour {
     [Server]
     public void Destroy(GameObject asset, bool hasNetworkIdentity) {
         if (hasNetworkIdentity)
-            NetworkServer.Destroy(asset); // não é preciso também dar destroy asset porque o network server já toma conta disso
+            NetworkServer.Destroy(asset); // not needed to destroy the asset because network server already handles that
         else
             RpcDestroyAsset(asset);
 

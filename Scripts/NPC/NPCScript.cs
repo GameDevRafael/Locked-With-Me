@@ -9,12 +9,12 @@ using UnityEngine.AI;
 
 public class NPCScript : NetworkBehaviour {
 
-    [HideInInspector] public int currentTarget; // waypoint alvo atual
-    [HideInInspector] public bool hasAttacked = false; // não executa o código de ataque multiplas vezes, só a animação
-    [HideInInspector] public Transform soundTriggerHeard; // o gameobject que faz o barulho que o jogador faz
+    [HideInInspector] public int currentTarget; // current target's waypoint
+    [HideInInspector] public bool hasAttacked = false; // doesn't exceute the attack code multiple times, only the animation
+    [HideInInspector] public Transform soundTriggerHeard; // the gameobject that makes the noise when the player steps on it
 
     [HideInInspector][SyncVar(hook = nameof(OnPlayerToChaseChanged))] public GameObject playerToChase;
-    // players dentro do box collider do NPC que serve como campo de visão
+    // the box collider serves as a field of view
     [HideInInspector]public SyncList<GameObject> playersInFOV = new SyncList<GameObject>();
     [SyncVar(hook = nameof(OnSawPlayerChanged))] private bool sawPlayer = false;
     [SyncVar(hook = nameof(OnDistanceToPlayerChanged))] private float distanceToPlayer;
@@ -42,7 +42,8 @@ public class NPCScript : NetworkBehaviour {
     public LayerMask player1Layer;
     public LayerMask player2Layer;
 
-    public bool houseNPC; // se for da casa ent o footstep é som de casa senão é som de relva e para ver a velocidade dele
+    // if it's the NPC inside the house then the footstep is more accurate for in house steps, also checks the NPC's velocity
+    public bool houseNPC;
 
     void Start() {
         navMeshAgent = GetComponent<NavMeshAgent>();
@@ -82,10 +83,8 @@ public class NPCScript : NetworkBehaviour {
 
 
     /*
-     * os sound triggers são pequenos colliders que quando o jogador entra neles irá fazer um som, simula o efeito de pisar
-     * em madeira que faz barulho 
-     * se o NPC estiver no alcance desse som então começa a dar chase para o local que fez o barulho
-     *
+     * the sound triggers are small colliders that when the players step on them they'll make a sound simulating a creak on the wood
+     * if the NPC is in range of listening then it'll start chasing the sound to its origin
      */
     public bool CanHearAudioSource() {
         float maxHearingDistance = 0;
@@ -119,7 +118,7 @@ public class NPCScript : NetworkBehaviour {
 
     public IEnumerator MoveToSpawn() {
         yield return new WaitForSeconds(2f);
-        // trocar diretamente a posição dele não estava a funcioanr corretamente por causa do setup do nav mesh, mas esta ação é própria para lidar com isso
+        // directly changing its position wasnt working correctly because of the nav mesh's setup, this fixed it
         navMeshAgent.Warp(spawnPoint.position);
         hasAttacked = false;
         heardNoise = false;
@@ -137,7 +136,7 @@ public class NPCScript : NetworkBehaviour {
         if (playersInFOV.Count == 0)
             return null;
 
-        // se estivermos a jogar singleplayer então o NPC apanha o jogador que estiver no seu FOV (se houver e for válido -> se não estiver escondido ou morto)
+        // if im playing singleplayer then the NPC grabs the player that's on the its FOV (if it's valid, meaning outside a chest or alive)
         if (GameManager.Instance.isSinglePlayer) {
             GameObject player = playersInFOV[0];
             if (IsPlayerValidTarget(player)) {
@@ -148,8 +147,9 @@ public class NPCScript : NetworkBehaviour {
 
         } else {
             GameObject closestVisiblePlayer = null;
-            // esta variável é só para sabermos quando apanhamos uma distância mais pequena do que a atual (esta)
-            float distanceToPlayer = float.MaxValue; // não mete em causa a otimização porque todos os floats ocupam 4 bytes
+            // this variable is so that i know when there's a smaller distance than the current one (this one)
+            float distanceToPlayer = float.MaxValue; // it won't cause bad optimization because all floats occupy 4 bytes
+
 
             for (int i = 0; i < playersInFOV.Count; i++) {
                 GameObject currentPlayer = playersInFOV[i];
@@ -160,7 +160,7 @@ public class NPCScript : NetworkBehaviour {
                     if (dist < distanceToPlayer) {
                         closestVisiblePlayer = currentPlayer;
                         distanceToPlayer = dist;
-                        this.distanceToPlayer = dist; // aqui atualizamos a syncVar com a distância mais próxima
+                        this.distanceToPlayer = dist; // it updated the sync var with the closest distance
 
                     }
                 }
@@ -172,19 +172,19 @@ public class NPCScript : NetworkBehaviour {
 
 
     void Update() {
-        // só precisamos do server a controlar o server porque ele segue o mesmo mecanismo em todos os clientes
+        // it should run on the server because it follows the same mechanisms on all clients
         if (isServer == false) {
             return;
         }
 
-        // quando o jogador no singleplayer volta ao inicio o NPC vai continuar a tentar apanhar a variable playerToCHase mas vai ser nula
+        // when the singeplayer player goes back to the beginning, the NPC will keep trying to gtab the player to chase variable but it'll be null
         if (networkDie) {
             if (playerToChase == null) {
                 animator.enabled = false;
             }
             navMeshAgent.isStopped = true;
 
-            // faz com que não ative nenhuma animation
+            // so it doesn't activate any animation
             sawPlayer = false;
             heardNoise = false;
             distanceToPlayer = 999f;
@@ -195,7 +195,7 @@ public class NPCScript : NetworkBehaviour {
             heardNoise = true;
         }
 
-        // apanhamos o jogador que for válido (single ou multiplayer) que não esteja nem morto nem escondido
+        // grabs the player that's valid
         playerToChase = GetValidTargetPlayer();
 
         if (playerToChase == null) {
@@ -207,13 +207,13 @@ public class NPCScript : NetworkBehaviour {
         RaycastHit hit;
         Vector3 playerHeadPosition = playerToChase.transform.position + offsetHeadPlayer;
         float distanceToPlayerHead = Vector3.Distance(headPoint.position, playerHeadPosition);
-        // normalized necessário para o raycast funcionar bem (normalizar sempre um vetor)
+        // normalize is necessary for the raycast to work well
         Vector3 directionToPlayer = (playerHeadPosition - headPoint.position).normalized;
 
         if (Physics.Raycast(headPoint.position, directionToPlayer, out hit, distanceToPlayerHead)) {
             if (hit.transform.CompareTag("Player")) {
                 PlayerMovement pm = hit.transform.GetComponent<PlayerMovement>();
-                sawPlayer = !pm.isDead && !pm.isInChest; // só o vemos se for válido (não estiver nem escondido nem morto)
+                sawPlayer = !pm.isDead && !pm.isInChest; // it only sees him if he's valid
 
             } else {
                 sawPlayer = false;
@@ -230,7 +230,7 @@ public class NPCScript : NetworkBehaviour {
     }
 
 
-    // atualizamos a lista para incluir o novo jogador que entrou no jogo e dizer que já não estamos a jogar singleplayer
+    // updated its list to include the new player that joined the game (it stops being singleplayer)
     public void OnPlayerConnected() {
         if (GameManager.Instance.activePlayers.Count > 0) {
             GameManager.Instance.activePlayers[0] = GameManager.Instance.activePlayers[0];
@@ -238,7 +238,7 @@ public class NPCScript : NetworkBehaviour {
         }
     }
 
-    // como um jogador saiu do jogo temos de atualizar a lista para não haver problemas de nulos e dizer que estamos a jogar singleplayer
+    // because someone left the game, it has to update its list so there won't be any problems with nulls (and now it's singleplayer)
     public void OnPlayerDisconnected() {
         if (GameManager.Instance.activePlayers.Count > 0) {
             GameManager.Instance.activePlayers[0] = GameManager.Instance.activePlayers[0];
@@ -246,7 +246,7 @@ public class NPCScript : NetworkBehaviour {
         }
     }
 
-    // escolhemos um waypoint ao calhas que não seja outra vez o way point atual
+    // random way point that's not the current one
     public void MoveToNextWayPoint() {
         wayPointsRandom.Clear();
 
@@ -259,15 +259,15 @@ public class NPCScript : NetworkBehaviour {
         currentTarget = Random.Range(0, wayPointsRandom.Count);
         navMeshAgent.SetDestination(wayPointsRandom[currentTarget].position);
 
-        // atualizamos a syncvar e a animação de andar
+        // update the syncvar and the walking animation
         currentWaypointPosition = wayPointsRandom[currentTarget].position;
     }
 
-    // não precisamos de meter a dar o som se for o cliente porque isto ocorre independentemente deles, ou seja, o NPC é exatamente igual em ambos os jogos
+    // i dont need to activate the sound if it's the client because this will occur independently because the NPC is the same on both players
     public void PlayFootstepSound() {
-        // os NPCs só dão trigger do som do passo a partir do servidor porque não são "donos" de nenhum cliente
+        // NPCs only trigger the footstep sound through the server because they aren't the owners of any client
         if (isServer && animator.GetBool("die") == false) {
-            // não precisamos de passar por um método [Command] porque estamos a chamar diretamente pelo servidor
+            //i dont need to pass a command block because we are inside the server
             SoundManager.Instance.RpcPlaySound(gameObject, houseNPC);
         }
     }
@@ -275,14 +275,14 @@ public class NPCScript : NetworkBehaviour {
     public void RotateTowardPlayer() {
         if (playerToChase == null) return;
 
-        // apanhamos a direção em que queremos olhar apanhando um vetor 3D entre o jogador e nós
+        // grabs the direction i want to look at by gatting a vector between the player and the NPC
         Vector3 direction = playerToChase.transform.position - transform.position;
         direction.y = 0; // só fazemos a rotação a nível horizontal
         Quaternion lookRotation = Quaternion.LookRotation(direction);
         transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * navMeshAgent.angularSpeed);
     }
 
-    // não precisams de meter a dar o som caso seja o cliente porque isto não é dependente de um deles, vai ocorrer independentemente
+    // not needed to activate the sound if it's the client because it doesn't matter, it'll happen on both players anyways
     private IEnumerator RandomGrowlCoroutine() {
         while (animator.GetBool("die") == false) {
             float waitTime = Random.Range(10f, 20f);
@@ -291,7 +291,7 @@ public class NPCScript : NetworkBehaviour {
             string[] growls = { "growl1", "growl2", "moan" };
             string selectedGrowl = growls[Random.Range(0, growls.Length)];
 
-            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0); // isto serve para vermos qual é o comportamento atual do NPC
+            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0); // this shows the current animation of the NCP
             if (stateInfo.IsName("Rest") || stateInfo.IsName("Walk")) {
                 if (isServer && animator.GetBool("die") == false)
                     SoundManager.Instance.RpcPlayZombieSoundFX(selectedGrowl, gameObject);
@@ -300,7 +300,7 @@ public class NPCScript : NetworkBehaviour {
     }
 
 
-    // fazemos o jogador que foi acertado pelo NPC morrer e concluímos o ataque do NPC
+    // it makes the player that was hit die and conclude the NPC's attack
     private void ProcessPlayerHit(Collider playerCollider) {
         PlayerMovement playerMovement = playerCollider.GetComponent<PlayerMovement>();
         if (playerMovement != null) {
@@ -310,11 +310,10 @@ public class NPCScript : NetworkBehaviour {
     }
 
     /*
-     * o NPC vai atacar o jogador, só pode atacar se não estiver já a atacar (a animação corre à mesma mas não faz o código)
-     * fazmoes o som de ataque e usamos um OverlapSphere para sabermos onde a mão do NPC (que ataca) 
-     * passou e se um dos hits for o jogador então é porque lhe acertou independentemente se for single ou multiplayer
-     * usamos overlapSphere para ser mais realista porque estamos a usar a mão do NPC e assim usamos uma esfera
-     * se fosse uma bala já não era preciso esta maneira
+     * the NPC is going to attack the player, it can only attack if it's not already attacking
+     * it makes the sound of the attack and i use an overlap sphere to know where the NPC's hand (attack point) passes through
+     * and if one of the hits is the player then it hit him
+     * also, overlaph sphere is more realistic because im using the hand to attack
      */
     public void AttackMove() {
         if (!hasAttacked) {
@@ -356,9 +355,8 @@ public class NPCScript : NetworkBehaviour {
 
     }
 
-    // nós primeiro fazemos o npc morrer com a animação e paramos as corrotinas
-    // e esperamos 3 segundos para o míssil desaparecer e depois chamamos isto para ele ser destruído
-    // isto vem de um call dentro de um bloco de if(isServer)
+    // first the NPC dies with the animation and stopp the corroutines, then wait 3 seconds for the missile to dissappear and then call this so it's destoryed
+    // this comes from an if(isServer) block
     public void Destroy() {
         NetworkSpawner.Instance.Destroy(gameObject, true);
     }

@@ -5,8 +5,6 @@ using UnityEngine.InputSystem;
 public class SoundManager : NetworkBehaviour {
     public static SoundManager Instance { get; set; }
 
-    // tudo sons 2D, os 3D são passados por parâmetros
-    // music
     [Header("Music")]
     public AudioSource insideTheme;
     public AudioSource outsideTheme;
@@ -26,7 +24,7 @@ public class SoundManager : NetworkBehaviour {
 
 
 
-    // singleton classe, se voltar a usar este script então destruímo-lo para termos a certeza que só existe um SoundManager
+    // singleton class, i only want one sound manager
     void Awake() {
         if (Instance != null && Instance != this) {
             Destroy(gameObject);
@@ -48,16 +46,15 @@ public class SoundManager : NetworkBehaviour {
         audio.Stop();
     }
 
-
-    // não podemos passar objetos pela network então passo o nome do objeto e depois apanhamo-lo diretamente
-    // PS: afinal podemos, não podemos passar o transform mas podemos passar o gameObject
-    [Command(requiresAuthority = false)] // dizemos ao server, os clientes não têm autoridade sobre objetos que não lhe pertencem (que não estão attached ao jogador) então temos de ignorar autoridade
+    // we cant pass transforms through the network, but we can pass their gameObject
+    // we have to tell the server to ignore authority because the clients don't have authority of objects that don't belong to them (aren't attached to them)
+    [Command(requiresAuthority = false)]
     public void CmdPlaySound(GameObject soundObject) {
         RpcPlaySound(soundObject);
     }
 
 
-    [ClientRpc] // dizemos do server para todos os clientes
+    [ClientRpc] // the servers tells all the clients
     public void RpcPlaySound(GameObject soundObject) {
         AudioSource audio = soundObject.GetComponent<AudioSource>();
         PlaySound(audio);
@@ -70,7 +67,7 @@ public class SoundManager : NetworkBehaviour {
     }
 
 
-    [ClientRpc] // footsteps dos NPCs
+    [ClientRpc] // NPCs' footsteps 
     public void RpcPlaySound(GameObject soundObject, bool houseNPC) {
         AudioSource audio = soundObject.GetComponent<AudioSource>();
 
@@ -89,7 +86,7 @@ public class SoundManager : NetworkBehaviour {
         PlaySound(audio);
     }
 
-    [ClientRpc] // dizemos do server para todos os clientes
+    [ClientRpc]
     public void RpcPlayZombieSoundFX(string audioName, GameObject audioObject) {
         AudioSource audioSource = audioObject.GetComponentInChildren<AudioSource>();
 

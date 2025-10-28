@@ -7,10 +7,6 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.SceneManagement;
 
-/**
- * tive de fazer um UIManager classe porque não estava a conseguir obter os botões nem o joystick após criar os players através do networkManagers, então fiz esta classe
- * para termos acesso a esses objetos de outra forma
- */
 public class UIManager : MonoBehaviour {
     public GameObject swampTrees;
     public GameObject villageTrees;
@@ -25,7 +21,7 @@ public class UIManager : MonoBehaviour {
     public GameObject bridges;
     public GameObject houses;
     public GameObject wood;
-    public float spawnInterval = 0.1f; // o intervalo entre cada objeto
+    public float spawnInterval = 0.1f; // the spawn timer between each game object
 
     // buttons
     [Header("Buttons")]
@@ -44,10 +40,10 @@ public class UIManager : MonoBehaviour {
     private PlayerMovement localPlayerReference;
     private InventoryManager localInventoryReference;
     private Vector3 positionBeforeHideInChest;
-    private Coroutine currentCoroutine; // da quantidade de tmepo para o pop up aparecer
+    private Coroutine currentCoroutine; // the time interval for the pop up to appear
     private GameObject rocketLauncherMissile;
     private bool isInGodMode = false;
-    private Transform chest; // o chest em que o jogador entrou, para podermos voltar a ativar o box collider dele
+    private Transform chest; // the chest in which the player entered so we can activate its box collider after he leaves
 
 
     // MENUS
@@ -64,13 +60,13 @@ public class UIManager : MonoBehaviour {
 
     // SERVIDOR
     [Header("Server")]
-    public NetworkDiscovery networkDiscovery; // procura por servidores
+    public NetworkDiscovery networkDiscovery; // searches for servers
     public CustomNetworkManager networkManager;
-    public GameObject serverListPanel; // menu onde vão mostrar os servidores
-    public GameObject serverEntryPrefab; // menu que tem os servidores onde podemos clicar neles e juntarmo-nos
-    public Transform serverListContent; // objetos dos servidores
-    public Button refreshButton; // atualizar informações dos servidores atuais
-    // dicionário dos servidores que guarda o IP do servidor com a informação do servidor
+    public GameObject serverListPanel; // menu where the servers will be shown
+    public GameObject serverEntryPrefab; // menu that has the servers that the players can click on to join games
+    public Transform serverListContent; // servers' objects
+    public Button refreshButton; // update the informations of the current servers
+    // dictionairy that stores the server's IP and their information
     private Dictionary<string, ServerResponse> discoveredServers = new Dictionary<string, ServerResponse>();
     private bool isNetworkShuttingDown = false;
     private bool isNetworkReady = true;
@@ -97,18 +93,17 @@ public class UIManager : MonoBehaviour {
     }
 
     private void Start() {
-        // para quando voltamos ao menu temos de voltar a apanhar estes componentes porque o custom network manager tem DontDestoryOnLoad
+        // when i go back to the menu i have to find these because of the dont destroy on load
         networkDiscovery = GameObject.Find("NetworkManager").GetComponent<NetworkDiscovery>();
         networkManager = GameObject.Find("NetworkManager").GetComponent<CustomNetworkManager>();
 
-        // quando o jogador volta ao menu inicial para fazer novos jogos temos de resetar a network porque resetar a cena não basta visto que
-        // o network manager está dont destroy on load
+        // when the players goes back to the menu for new games i have to reset the network and not only the scene because the network manager is dont destroy on load
         if (NetworkClient.isConnected || NetworkServer.active || NetworkClient.active) {
             StartNetworkCleanup();
         }
 
-        discoveredServers.Clear(); // se tivermos voltado ao menu limpamos tudo
-        // ja atribuí isto no inspetor do componente no gameobject do network manager, mas para ter a certeza que funciona meto aqui também
+        discoveredServers.Clear(); // if i go back to the menu then reset
+        // (it's already attributed on the inspector, but just in case)
         networkDiscovery.OnServerFound.AddListener(OnDiscoveredServer);
 
         StartCoroutine(SpawnTerrainObjects());
@@ -146,8 +141,8 @@ public class UIManager : MonoBehaviour {
         isNetworkShuttingDown = true;
         isNetworkReady = false;
 
-        // paramos a atual e começamos uma nova, isto é preciso caso o jogador spame o botão de voltar ao menu então pode causar problemas
-        // assim temos a certeza que só é gerada uma corrotina nova quando ´não houver nenhuma
+        // i stop the current network and start a new one, this is needed in case the player spams the button of going back to the menu that might cause problems
+        // like this im sure it's only made one new corroutine when there is none
         if (networkCleanupCoroutine != null) {
             StopCoroutine(networkCleanupCoroutine);
         }
@@ -156,10 +151,10 @@ public class UIManager : MonoBehaviour {
     }
 
     private IEnumerator CleanupNetworkComponents() {
-        // desativamos os botões de começar jogos porque a network tem de resetar primeiro
+        // deactivate the buttons of finding games because the network has to reset first
         SetNetworkButtonsInteractable(false);
 
-        // paramos o server o cliente e o host
+        // stop the server, client and host
         if (NetworkServer.active) {
             networkManager.StopHost();
             yield return new WaitForSeconds(0.2f);
@@ -175,13 +170,13 @@ public class UIManager : MonoBehaviour {
             yield return new WaitForSeconds(0.2f);
         }
 
-        // paramos de descobrir jogos começados
+        // stop finding games
         networkDiscovery.StopDiscovery();
 
-        // esperamos mais um poouco para confirmar que parou corretamente
+        // wait a little bit longer to confirm it stopped correctly
         yield return new WaitForSeconds(0.5f);
 
-        // e agora já estamos prontos e ativamos de volta os botões
+        // now it's ready to re activate the buttons
         isNetworkShuttingDown = false;
         isNetworkReady = true;
 
@@ -193,7 +188,7 @@ public class UIManager : MonoBehaviour {
 
 
     private void SetNetworkButtonsInteractable(bool interactable) {
-        // Disable/enable host button
+        // disable/enable host button
         if (hostButtonButton != null) {
             Button hostBtn = hostButtonButton.GetComponent<Button>();
             if (hostBtn != null) {
@@ -201,7 +196,7 @@ public class UIManager : MonoBehaviour {
             }
         }
 
-        // Disable/enable other network-related buttons
+        // disable/enable other network-related buttons
         Button[] networkButtons = gamemodeButtons.GetComponentsInChildren<Button>();
         foreach (Button btn in networkButtons) {
             btn.interactable = interactable;
@@ -217,19 +212,19 @@ public class UIManager : MonoBehaviour {
                !NetworkClient.isConnected && !NetworkServer.active && !NetworkClient.active;
     }
 
-    // isto é chamado sempre que o newtwork discovery encontra um servidor, então adicionamos ao dicionário
+    // this is called everytime network discovery finds a server, so i add it to the dictionairy
     public void OnDiscoveredServer(ServerResponse info) {
-        string serverIP = info.uri.ToString(); // isto apanha o IP do servidor (depois metemos em string)
+        string serverIP = info.uri.ToString(); // this catches the servers' IP
 
-        // se o IP não existir então adiciona, se já existir não faz nada
-        // assim impedimos que vários botões sejam criados para o mesmo servidor
+        // if the IP doesn't exist then it adds, if it already exists nothing happens
+        // this way i prevent many butons to be created for the same server
         if (discoveredServers.ContainsKey(serverIP) == false) {
             discoveredServers[serverIP] = info;
             UpdateServerList();
         }
     }
 
-    // Como alteramos a lista de servidores descobertos também temos de alterar a UI então apagamos tudo e voltamos a meter
+    // because i change the list of found servers i also have to change the UI so i deleted everything and re add
     private void UpdateServerList() {
         int contador = 1;
 
@@ -241,37 +236,36 @@ public class UIManager : MonoBehaviour {
             GameObject serverEntry = Instantiate(serverEntryPrefab, serverListContent);
 
             TextMeshProUGUI textComponent = serverEntry.GetComponentInChildren<TextMeshProUGUI>();
-                textComponent.text = $"Game #{contador}"; // número de servidores (jogos/hosts) que existem
+                textComponent.text = $"Game #{contador}"; // number of servers (games / hosts) that exist
 
-            // metemos um event listener e quando o botão for clicado o cliente entra no servidor
+            // i add an event listener and when the button is clicked the client enters the server
             Button joinButton = serverEntry.GetComponentInChildren<Button>();
             joinButton.onClick.AddListener(() => JoinServer(info));
 
             contador++;
         }
 
-        // quando o jogador quiser juntar-se ao host aparece a lista de servidores
+        // when the player wants to join the host the servers' list appears
         serverListPanel.SetActive(true);
     }
 
     public void JoinServer(ServerResponse info) {
-        networkManager.StartClient(info.uri); // conectamos o cliente ao servidor correto com o IP do host
+        networkManager.StartClient(info.uri); // connect the client to the correct server with the host's IP
         hideGamemodeMenuShowGameInterface();
         serverListPanel.SetActive(false);
         networkDiscovery.StopDiscovery();
     }
 
-    // esta função procura por servidores
     public void RefreshServerList() {
-        discoveredServers.Clear(); // sempre que procuramos servidores novos resetamos tudo para o caso da informação mudar
+        discoveredServers.Clear(); // everytime it searches for new servers it resets everything in case the information changes
         networkDiscovery.StartDiscovery();
-        // não atualizamos a UI porque o action listener do start discovery ja faz isso OnDiscoveredServer
+        // i dont update the UI because the action listener of the start discovery already does that on OnDiscoveredServer
     }
 
 
     public void SetLocalPlayer(PlayerMovement player) {
         localPlayerReference = player;
-        localPlayerReference.CmdSetGodMode(isInGodMode); // isto só muda a syncvar do jogador em questão, não são de todos os jogadores que vai mudar
+        localPlayerReference.CmdSetGodMode(isInGodMode); // this only chanves the syncvar of the player in question, it's not for all of the players
         localInventoryReference = player.transform.GetComponent<InventoryManager>();
     }
 
@@ -282,7 +276,6 @@ public class UIManager : MonoBehaviour {
     }
 
     public void quitButton() {
-        // se estiver no Unity o botão vai parar o modo de jogar, se for a aplicação já construída então sai da aplicação
     #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
     #else
@@ -300,9 +293,8 @@ public class UIManager : MonoBehaviour {
         instructionsMenu.SetActive(true);
     }
 
-
-    // mudar a layer do jogador faz com que seja invisível para os NPCs
-    // como ainda não temos o objeto do jogador no menu inicial o que podemos fazer é guardar a futura tag dele e quando o tivermos damos lhe a tag
+    // change the player's tag so it's invisible to the NPCs
+    // because i dont have the player yet on the main menu i can instead keep the future tag for him when i do have him
     public void GodMod() {
         Toggle toggle = settingsMenu.transform.Find("Toggle").GetComponent<Toggle>();
         bool isON = toggle.isOn;
@@ -369,21 +361,21 @@ public class UIManager : MonoBehaviour {
 
     public void backButton(int num) {
         switch (num) {
-            // mostrar o menu inicial quando estás no menu de botões de gamemode
+            // show the main menu when im in the gamemodes menu
             case 0:
                 gamemodeMenu.SetActive(false);
                 startMenu.SetActive(true);
                 break;
 
-            // quando estás à procura de servers e voltas para os botões de gamemodes
+            // when im searching for servers
             case 1:
                 gamemodeButtons.SetActive(true);
-                // paramos de procurar por servidores e tiramos o painél que os mostra
+                // stop looking for servers and remove the panel that shows themp
                 networkDiscovery.StopDiscovery();
                 serverListPanel.SetActive(false);
                 break;
 
-            // quando estámos no menu de settings e queres ovltar ao menu inicial
+            // when im in the setting's menu
             case 2:
                 settingsMenu.SetActive(false);
                 startMenu.SetActive(true);
@@ -428,7 +420,8 @@ public class UIManager : MonoBehaviour {
                     chest = hit.transform;
                     chest.GetComponentInChildren<BoxCollider>().enabled = false;
                     positionBeforeHideInChest = localPlayerReference.transform.position;
-                    localPlayerReference.HideInChest(hit.transform.position); // não posso passar o transform porque os baús não têm a componente Netowrk Identity e não faz sentido tar a meter, então passo a posição
+                    // i cant pass the transform because chests dont have the component network identity and it doesnt make sense giving it to them, so i pass their position
+                    localPlayerReference.HideInChest(hit.transform.position);
                     localPlayerReference.playerCamera.GetComponent<CameraScript>().insideChest = true;
                     break;
 
@@ -439,13 +432,13 @@ public class UIManager : MonoBehaviour {
                     if (wasKeyAdded == false) {
                         ShowCaptionOnce("Inventory is full!", 1);
                     } else {
-                        localPlayerReference.CmdDestroyObject(hit.transform.parent.gameObject); // aqui estamos a mandar o child, a networkIdentity está no parent
+                        localPlayerReference.CmdDestroyObject(hit.transform.parent.gameObject); // im sending the child here, the networkIdentity is on the parent
                         SoundManager.Instance.PlaySound(SoundManager.Instance.grabItemSound);
                     }
                     break;
 
                 case "lock":
-                    bool hasKey = localPlayerReference.OpenLock(hit.transform); // aqui estamos a mandar o parent
+                    bool hasKey = localPlayerReference.OpenLock(hit.transform); // here tho im sending the parent
                     if (hasKey == false) {
                         ShowCaptionOnce("If only I had a key...", 2);
                     } else {
@@ -468,10 +461,11 @@ public class UIManager : MonoBehaviour {
                             localPlayerReference.EquipRocketLauncher(hit.transform.gameObject);
                             SoundManager.Instance.PlaySound(SoundManager.Instance.grabItemSound);
                             rocketLauncherMissile = hit.transform.Find("missile").gameObject;
-                            hit.transform.tag = "Untagged"; // porque quando olhavas para ele podias clicar nele e ganhar mais rocket launchers, assim o botão na mão não fica ativo
-                            hit.transform.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast"); // para não ficar à frente dos raycasts da câmara uma vez que o apanhamos
+                            // because when i was looking at it i could click on it and gain more rocket launcher, like this the hand's button doesnt become active
+                            hit.transform.tag = "Untagged";
+                            hit.transform.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast"); // so it's not ahead of the camera's raycasts once we grab it
 
-                            // se o portal já estiver aberto é porque os jogadores já foram à procura dos outros rockets por isso não mostramos outra vez a caption
+                            // if the portal is already open it's because the player already started looking for the other rockets so i dont have to show the caption again
                             if(GameManager.Instance.portal.activeSelf == false)
                                 ShowCaptionOnce("There are more inside the portal!", 2);
                             localPlayerReference.CmdActivatePortal();
@@ -538,15 +532,16 @@ public class UIManager : MonoBehaviour {
             ShowCaptionOnce("No ammo!", 1);
         }
 
-        if (localInventoryReference.FindItem("missile") == null || localInventoryReference.FindItem("missile").quantity == 0) { // procuramos novamente porque podemos ter outro stack
+        // search again because there may exist another stack
+        if (localInventoryReference.FindItem("missile") == null || localInventoryReference.FindItem("missile").quantity == 0) {
             interactRocketLauncherButton.GetComponent<Button>().interactable = false;
             rocketLauncherMissile.SetActive(false);
 
         }
     }
 
-    // quando o jogador morrer o seu ecrã vai ficar preto, para tal usamos uma imagem preta com full transparência que lentamente vai perdendo transparência e fica opaca
-    // fazemos isso lentamente, a imagem é preta, só queremos mudar o alfa, à medida que o tempo avança o alfa vai aumentando
+    // when the player dies its screen is going to be black, for that i use a black image with full transparency that is slowly losing it and become opaque
+    // i do it slowly, i only want to change its alpha values
     public IEnumerator FadeToBlack(float duration, PlayerMovement playerMovement) {
         float elapsed = 0f;
         fadeImage.gameObject.SetActive(true);
@@ -554,18 +549,17 @@ public class UIManager : MonoBehaviour {
         Color startColor = fadeImage.color;
         Color targetColor = new Color(startColor.r, startColor.g, startColor.b, 1f);
 
-        // com o passar do tempo metemos a imagem a ficar com cor preta
         while (elapsed < duration) {
             elapsed += Time.deltaTime;
-            float t = Mathf.Clamp01(elapsed / duration); // clamp01 porque faz ir de 0 a 1
+            float t = Mathf.Clamp01(elapsed / duration); // clamp01 because it makes it go from 0 to 1
             fadeImage.color = Color.Lerp(startColor, targetColor, t);
-            yield return null; // isto diz ao unity para continuar o código na próxima frame para ser mais smooth
+            yield return null; // this tells unity to continue the code on the ext frame (to be smoother)
         }
 
         fadeImage.color = targetColor;
         playerMovement.gameObject.GetComponentInChildren<AudioListener>().enabled = false;
 
-        // esperamos um pouco antes de renascermos
+        // wait a little bit before respawning
         yield return new WaitForSeconds(1f);
 
         if (playerMovement.playerLives != 0) {
@@ -573,18 +567,18 @@ public class UIManager : MonoBehaviour {
 
         } else {
             fadeImage.gameObject.SetActive(false);
-            fadeImage.color = new Color(startColor.r, startColor.g, startColor.b, 0f); // reset para 0 transparência outra vez
+            fadeImage.color = new Color(startColor.r, startColor.g, startColor.b, 0f); // reset to 0 transparency again
         }
 
     }
 
     public IEnumerator SetPlayerDeadBackground() {
-        yield return new WaitForSeconds(2f); // esperamos 2 segundos por causa da imagem preta
-        // a imagem está na gameInterface então só a desativamos depois da imagem ficar nice
+        yield return new WaitForSeconds(2f); // wait 2 seconds because of the black image
+        // the image is on the gameInterface so i only deactivate it after the image is ok
         gameInterface.SetActive(false);
         gameOverInterface.SetActive(true);
 
-        // meter o texto no topo do ecrã
+        // place the text on the top of the screen
         Transform gameOverText = gameOverInterface.transform.Find("GameOverText").transform;
         Vector3 pos = gameOverText.position;
         pos.y = 350;
@@ -594,14 +588,14 @@ public class UIManager : MonoBehaviour {
         gameOverInterface.transform.Find("QUIT").gameObject.SetActive(true);
 
         if (GameManager.Instance.isSinglePlayer == false) {
-            // meter a câmara do jogador que morreu no outro jogador para dar spectate
+            // place the camera of the player that died on the other player in order to spectate
             GameObject otherPlayer = CustomNetworkManager.Instance.FindOtherPlayer(localPlayerReference.gameObject);
             Camera otherPlayerCamera = otherPlayer.GetComponentInChildren<CameraScript>().gameObject.GetComponent<Camera>();
 
             localPlayerReference.playerCamera.transform.SetParent(otherPlayerCamera.transform.parent);
-            // não basta apenas metê-la no transform certo, temos de resetar a posição tbm e aproveitamos e fazemos para a rotação tbm
-            // juntamente com a camara o componente especial e o script (para não podermos mexer na câmara)
-            // mas deixamos o audio lilstener para também podermos ouvir
+            // it's not enought to simply place it on the correct transform, i also have to reset the position and rotation
+            // alongside with the camera, the special compomnent and the script (so i cant move the camera)
+            // but leave the audio listener so i can listen
             localPlayerReference.playerCamera.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 
             //localPlayerReference.CmdDestroyPlayer();
@@ -645,18 +639,18 @@ public class UIManager : MonoBehaviour {
 
     public void BackToMainMenu(bool cameFromPauseButton) {
         if (cameFromPauseButton) {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name); // damos reload da scene para o jogo começar do zero
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name); // reload the scene for the game to start over
 
         } else
-            StartCoroutine(CoroutineBackToMenu(2)); // 2 segundos porque a imagem preta demora 2 segundos para vir
+            StartCoroutine(CoroutineBackToMenu(2)); // 2 seconds because the black image takes 2 seconds to come
     }
 
     private IEnumerator CoroutineBackToMenu(int time) {
         yield return new WaitForSeconds(time);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name); // damos reload da scene para o jogo começar do zero
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name); // reload the scene of the game to start over
     }
 
-    // isto é chamado de um bloco de if(isServer)
+    // this is called from a block if(isServer)
     public void SetYouWinInterface() {
         if (GameManager.Instance.isSinglePlayer) {
             ShowYouWinForLocalPlayer();

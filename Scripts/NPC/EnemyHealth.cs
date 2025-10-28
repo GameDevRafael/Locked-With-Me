@@ -19,12 +19,12 @@ public class EnemyHealth : NetworkBehaviour {
     [Command(requiresAuthority = false)]
     public void CmdTakeDamage(float amount) {
         currentHealth -= amount;
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth); // para ter a certeza que fica entre um mínimo de vida 0 e máx de vida 100
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth); // to make sure it stays between a minimum of 0 heatlh and 100 max health
 
         if (currentHealth == 0) {
             nPC.animator.SetBool("die", true);
             nPC.CmdDie();
-            nPC.StopAllCoroutines(); // parar corrotinas tipo a do random growl
+            nPC.StopAllCoroutines(); // to stop corroutines like random growl
 
             RpcShowDAM();
         }

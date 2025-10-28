@@ -8,8 +8,8 @@ public class CustomNetworkManager : NetworkManager {
     public GameObject player2Prefab;
 
     [Header("Informações dos Jogadores")]
-    public Transform[] spawnPoints; // vamos ter dois spawns possíveis, cada um na sua casa
-    // este dicíonário serve para sabermos qual conexão pertence a qual jogador
+    public Transform[] spawnPoints;// i have two possible spawns for the players
+    // this dictionairy is used to know which connection belongs to which player
     private Dictionary<NetworkConnectionToClient, GameObject> connectionToPlayer = new Dictionary<NetworkConnectionToClient, GameObject>();
 
     public static CustomNetworkManager Instance;
@@ -24,22 +24,21 @@ public class CustomNetworkManager : NetworkManager {
         Instance = this;
     }
 
-    // sem este método o cliente às vezes não funciona não funciona, o host ligava o jogo corretamente e conseguia jogar, mas o cliente não porque não estava a ser criado a prefab e não se conectava bem
-    // quando o método é chamado, o cliente é iniciado e liga-se ao servidor.
-    // o método em si não faz nada, mas podemos dar override para fazer, então o que fazemos é registar os prefabs dos jogadores
-    // o método register prefab é usado para os clientes conseguirem instanciar objetos localmente (nos seus jogos), primeiro registamos e depois instanciamos
+    // without this method the client sometimes doesn't work well, the host would turn on the game correctly and play, but the client wouldn't because its prefab was being created
+    // when the method was being called
+    // the method itself doesn't do anything, but i overrode it to register the players' prefabs
+    // the method register prefab is used so the clients can instance objects locally
     public override void OnStartClient() {
         base.OnStartClient();
 
-        // registamos as prefabs
-        // usei a lista de registered prefabs no network manager no unity, mas às vezes não estava a conseguir usá-lo, então adicionei este código para complementar e ter a certeza que funciona sempre
+        // i used the registered prefabs list on the network manager, but sometimes it wasn't working, so i did it manually too
         NetworkClient.RegisterPrefab(player1Prefab);
         NetworkClient.RegisterPrefab(player2Prefab);
     }
 
-    // este método já existe no script original NetworkManager e por isso temos de dar override porque eu quero adicionar os jogadores ao jogo com prefabs diferentes, o local para o fazer é aqui porque é quando são adicionados
+    // this method already exists so it needs to have an override because i want to add players to the game with different prefabs
     public override void OnServerAddPlayer(NetworkConnectionToClient conn) {
-        // ao começar um jogo, voltar ao menu e começar outro, os spawn points ficam null então precisamos dos obter novamente
+        // when starting a game, going back to the menu and starting another one, the spawn points turn null, so i need to get them again
         if (spawnPoints[0] == null || spawnPoints[1] == null) {
             spawnPoints[0] = GameObject.Find("SpawnPoint1").transform;
             spawnPoints[1] = GameObject.Find("SpawnPoint2").transform;
@@ -49,12 +48,12 @@ public class CustomNetworkManager : NetworkManager {
         Vector3 spawnPosition = Vector3.zero;
         Quaternion spawnRotation = Quaternion.identity;
 
-        int currentPlayerIndex = Mathf.Clamp(GameManager.Instance.playerCount, 0, spawnPoints.Length - 1); // se o playerCount não excede o número de spawn points
-        Transform spawnPoint = spawnPoints[currentPlayerIndex]; // como são só dois spawns podemos fazer usar o contador de jogadores existentes
+        int currentPlayerIndex = Mathf.Clamp(GameManager.Instance.playerCount, 0, spawnPoints.Length - 1); // if the playerCount doesnt excede the number of spawn points
+        Transform spawnPoint = spawnPoints[currentPlayerIndex]; // because there are only two spawns i can use the counter for existent players
         spawnPosition = spawnPoint.position;
         spawnRotation = spawnPoint.rotation;
 
-        // metemos um prefab de jogador diferente para ambos os jogadores, possivelmente no futuro vão escolher com base num menu
+        // different prefab for different players
         if (GameManager.Instance.playerCount == 0) {
             player = Instantiate(player1Prefab, spawnPosition, spawnRotation);
         } else {
@@ -63,34 +62,34 @@ public class CustomNetworkManager : NetworkManager {
 
         connectionToPlayer[conn] = player;
 
-        GameManager.Instance.AddPlayer(player); // atualiza o contador de jogadores e isSinglePlayer
+        GameManager.Instance.AddPlayer(player); // updates the counter of players and the isSinglePlayer variable
 
-        // depois de instanciarmos o segundo jogador e adicioná-lo à lista dos jogadores ativos, podemos notificar que já não estamos em single player
+        // after instancing the second player and adding him to the list of active players, i can notify that we are no longer in single player
         if (GameManager.Instance.playerCount == 2) {
             AddPlayerToNPCs();
         }
 
-        // adicionamos o jogador à conexão (jogo)
+        // add the player to the connection (game)
         NetworkServer.AddPlayerForConnection(conn, player);
     }
 
-    // em princípio nãó será necessário, mas quando um jogador sai do jogo convém decrementar a variável que tem em conta o número de jogadores no jogo
+    // when a player leaves from the game it decrements the variable that takes into account the number of players in the game
     public override void OnServerDisconnect(NetworkConnectionToClient conn) {
 
         if (connectionToPlayer.ContainsKey(conn)) {
             GameObject playerToRemove = connectionToPlayer[conn];
 
-            GameManager.Instance.RemovePlayer(playerToRemove); // remove o jogador
+            GameManager.Instance.RemovePlayer(playerToRemove); // removes the player
             NetworkSpawner.Instance.Destroy(playerToRemove, true);
             connectionToPlayer.Remove(conn);
 
             if (GameManager.Instance.playerCount <= 1) {
-                RemovePlayerFromNPCs(); // quando um jogador é desconectado temos de atualizar a lista dos NPCs para não haver problemas com nulos a aparecerem
+                RemovePlayerFromNPCs(); // when a player is disconnected i have to update the NPCs list of players
             }
         }
 
-        base.OnServerDisconnect(conn); // temos de chamar isto no fim senão a conexão é desconectada e depois estamos à procura do player de uma conexão que não existe
-        // e por isso a variável player count continuava igual sem ser decrementada
+        // i have to call this at the end or else the connection is disconnected and then it's searching for a player from a connection that doesn't exist
+        base.OnServerDisconnect(conn);
     }
 
     private void RemovePlayerFromNPCs() {
@@ -107,8 +106,8 @@ public class CustomNetworkManager : NetworkManager {
         }
     }
 
-    // se o servidor pára então damos reset à quantidade de jogadores e à lista
-    // se o host pára então ele volta ao menu e consequentemente o cliente também terá de voltar (se estiver no jogo)
+    // if the servers stops then i reset the quantity of players and the list
+    // if the host stops then he'll go back to the menu and so will the client (if in game aswell)
     public override void OnStopServer() {
         base.OnStopServer();
         connectionToPlayer.Clear();
@@ -117,20 +116,20 @@ public class CustomNetworkManager : NetworkManager {
 
     }
 
-    // se o cliente sair do jogo então volta ao menu, damos override para isso
+    // if the client leaves the game then he'll be brought back to the menu
     public override void OnStopClient() {
         base.OnStopClient();
         UIManager.Instance.BackToMainMenu(false);
     }
 
 
-    // método para adicionar o jogador ao jogo
+    // method that adds the player to the game
     public override void OnClientConnect() {
         if (!clientLoadedScene) {
             if (!NetworkClient.ready)
                 NetworkClient.Ready();
 
-            //if (autoCreatePlayer) damos override do método porque ele só instanciava prefabs se a checkbox do fazer automaticamente estivesse ligada, ignoramos isso
+            //if (autoCreatePlayer) override this because it only instanciated prefabs if the checkbox to do it automatically was on
             NetworkClient.AddPlayer();
         }
     }

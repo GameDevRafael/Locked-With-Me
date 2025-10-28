@@ -1,13 +1,14 @@
 using Mirror;
 using UnityEngine;
 
-public class SoundTriggerScript : NetworkBehaviour { // tem que ser network behaviour porque gameobjects passados por blocos RpcClient têm que ter network identity 
+public class SoundTriggerScript : NetworkBehaviour { // it has to be network behaviour because gameobjects passed through RPCClient blocks must have network identity
 
-    private void OnTriggerEnter(Collider other) { // o som acontece quando entrarmos no sítio do trigger
+    private void OnTriggerEnter(Collider other) { // the sound is played when we enter the trigger's area
         if (other.gameObject.CompareTag("Player") || other.gameObject.CompareTag("PlayerUntagged")) {
             SoundManager.Instance.CmdPlaySound(gameObject);
 
-        // isto estava a apanhar o primeiro collider que entrasse e eu não quero isso (estava a apanhar o FieldOfVIew, eu quero o NPC então apanhamos o root que é o parent gameObject
+        // this was catching the first collider that entered and I didn't want that
+        // It was getting the FieldOfView and I want the NPC so we have to catch the root which is the parent gameobject
         } else if (other.transform.root.gameObject.CompareTag("NPC")) {
             other.transform.root.gameObject.GetComponent<NPCScript>().ChangeHeardNoise(false);
         }

@@ -25,7 +25,7 @@ public class DamHealth : NetworkBehaviour {
 
     }
 
-    // assim clicamos no script com o botão direito e chamamos a função diretamente, muito fácil de dar debug sem ter de jogar o jogo constantemente!!
+    // with this i can click on the script with the right button of the mouse and call the method directly, really easy to debug without having to play game untill the end!!
     [ContextMenu("Destroy Dam Now")]
     public void CallDestroyDam() {
         StartCoroutine(DestroyDAM());
@@ -34,9 +34,9 @@ public class DamHealth : NetworkBehaviour {
 
     private IEnumerator DestroyDAM() {
         if (isServer) {
-            yield return new WaitForSeconds(1.5f); // esperamos até a explosão acabar e destruimos a barragem
-            UIManager.Instance.SetYouWinInterface(); // o jogo acabou então vamos mostrar you win interface
-            NetworkSpawner.Instance.Destroy(gameObject, true); // e destruímos a barragem
+            yield return new WaitForSeconds(1.5f); // it waits for the explosion to end and then destroy the dam
+            UIManager.Instance.SetYouWinInterface(); // the game ended so it shows the you win interface
+            NetworkSpawner.Instance.Destroy(gameObject, true);
         }
     }
 
@@ -44,7 +44,7 @@ public class DamHealth : NetworkBehaviour {
     [Command(requiresAuthority = false)]
     public void CmdTakeDamage(float amount) {
         currentHealth -= amount;
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth); // para ter a certeza que fica entre um mínimo de vida 0 e máx de vida 100
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth); // just to make sure that it says between a minimum health of 0 and a max of 100
 
         if (currentHealth == 0) {
             SoundManager.Instance.RpcPlaySound(gameObject);
@@ -59,7 +59,7 @@ public class DamHealth : NetworkBehaviour {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        particleSystem = GetComponentInChildren<ParticleSystem>(); // como vai ser chamado em todos os clientes não usamos isLocalPlayer por causa do hook isDestroyed
+        particleSystem = GetComponentInChildren<ParticleSystem>(); // because it'll be called on every client i dont have to use isLocalPlayer here because of the hook isDestroyed
 
     }
 
