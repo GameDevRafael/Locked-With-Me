@@ -53,7 +53,7 @@ Core scripts in [`Scripts`](Scripts):
 
 ## Media
 
-[Check the Short Trailer]((https://www.youtube.com/watch?v=W72o7VArAW4)
+[![Watch the Short Trailer](thumbnail.png)](https://www.youtube.com/watch?v=W72o7VArAW4)
 
 ---
 
