@@ -65,3 +65,4 @@ Core scripts in [`Scripts`](Scripts):
 ## Connect
 
 **LinkedIn:** [Rafael Faustino](https://www.linkedin.com/in/rgtdfaustino)
+**Itch.io:** [Rafael Faustino](https://gamedevrafael.itch.io/locked-with-me)
