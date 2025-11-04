@@ -47,7 +47,7 @@ Core scripts in [`Scripts`](Scripts):
 
 ## ▶ Game
 
-**[Play on Itch.io](https://yourgame.itch.io/locked-with-me)**
+**[Play on Itch.io](https://gamedevrafael.itch.io/locked-with-me)**
 
 ---
 
