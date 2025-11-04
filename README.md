@@ -53,9 +53,7 @@ Core scripts in [`Scripts`](Scripts):
 
 ## Media
 
-| AI Stealth | Lock/Key Interaction | Boss Fight | Dam Destruction |
-|------------|----------------------|------------|-----------------|
-| ![Inside the Chest](gif/gif1.png) | ![Using the Key](gif/gif2.png) | ![Boss Fight](gif/gif3.png) | ![Explosion](gif/gif4.png) |
+[Check the Short Trailer](trailer.mov)
 
 ---
 
