@@ -53,9 +53,12 @@ Core scripts in [`Scripts`](Scripts):
 
 ## Media - Click on the image to watch the trailer on Youtube
 
-<a href="https://www.youtube.com/watch?v=W72o7VArAW4">
-  <img src="thumbnail.png" width="50%">
-</a>
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=W72o7VArAW4">
+    <img src="thumbnail.png" width="35%">
+  </a><br>
+  <em>Click on the image to watch the short trailer on Youtube</em>
+</p>
 
 ---
 
