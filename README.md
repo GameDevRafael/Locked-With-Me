@@ -1,53 +1,147 @@
-# Locked With Me
+# Locked With Me – Local Co-op Horror Game
 
-A **local co-op horror game for Android** built in Unity with C#.  
-Playable in **singleplayer** or **local co-op**, the game challenges players to escape a locked house, survive AI enemies and ultimately destroy the dam trapping them on an island.
-
----
-
-## Overview
-
-Originally a small university assignment, I expanded it into a fully playable mobile game.  
-**Problem:** Delivering AI, networking and atmosphere on limited Android hardware.  
-**Method:** Implemented dynamic AI (sound/sight states), Mirror Networking for local co-op and mobile-focused optimizations (LOD, occlusion culling, progressive world loading).  
-**Outcome:** A polished 10–15 minute horror game that runs smoothly on Android devices.
+A **local co-op horror game optimized for Android** built in **Unity (C#)**.  
+Players must escape a locked house, avoid AI-controlled enemies and destroy the dam trapping them on an island.  
+Playable in **singleplayer** or **local co-op** via LAN.
 
 ---
 
-## Technical Contributions
+## Project Overview
 
-- **AI & Gameplay Systems**
-  - Enemy AI with sound and sight detection, dynamic searching and stealth mechanics.
-  - Multiplayer-synced boss fight mechanics and player inventory system.
+I originally developed this as a university prototype, but decided to expand it into a **fully playable mobile game** (10–15 min).  
+Focused on **AI behavior**, **local networking** and **Android performance optimization**.
 
-- **Networking**
-  - Local co-op using **Mirror Networking**, including player sync, interaction and game state management.
-
-- **Performance Optimization**
-  - Unity URP, LODs and occlusion culling for mobile performance.
-  - Progressive terrain loading.
-  - Light probes & baked lightmaps for efficient indoor lighting.
-
-- **Content Creation**
-  - I personally modeled the **main house** in Blender.
-  - Integrated free audio/visual effects with adaptive soundscapes (rain, waves, swamp wildlife, dynamic music).
+| **Category** | **Description** |
+|---------------|----------------|
+| **Engine** | Unity (URP) |
+| **Language** | C# |
+| **Platform** | Android (optimized for mid-range devices) |
+| **Networking** | Mirror (LAN Co-op) |
+| **Development Time** | 6 months (solo project) |
 
 ---
 
-## Code Structure
+## Technical Implementation
 
-Core scripts in [`Scripts`](Scripts):
+### AI & Gameplay Systems
+- **AI Pathfinding**: Implemented using Unity’s NavMesh system. Enemies update their navigation targets in real time and adapt to obstacles.
+- **Stealth gameplay**: Enemy AI with **sound and sight detection**.   
+- **Killing enemies** and the **inventory system** are synchronized over network.
+- **Finite State Machine (FSM)** architecture for AI behavior (`Rest`, `Walk`, `Chase`, `Investigate`, `Attack`).
 
-- **UIManager.cs** – Menus, network discovery, interaction system
-- **PlayerMovement.cs** – Player controller, animations, inventory, multiplayer sync
-- **NPCScript.cs** – AI pathfinding, perception (sound/sight), state management
-- **GameManager.cs** – Game state, player tracking, victory conditions
+**Key Scripts:**
+- `NPCScript.cs`: Pathfinding, perception system, state transitions.  
+- `PlayerMovement.cs`: Animation states, inventory, multiplayer sync.  
+- `GameManager.cs`: Handles player tracking, objectives and victory conditions.
+- `UIManager.cs`: Manages a servers list using Network discovery, progressively loads terrain, controls player HUD and menus.
 
 ---
 
-## ▶ Game
+### Networking (Mirror)
+- **Local Co-op** using Mirror NetworkDiscovery.  
+- Synchronized:
+  - Player positions, animations, inventory.
+  - Enemy AI state and world events.
+  - Match state transitions (start, death, victory).
 
-**[Play on Itch.io](https://gamedevrafael.itch.io/locked-with-me)**
+**Networking Architecture**
+
+The game uses a host-authoritative hybrid model where the host validates all persistent gameplay state (AI, inventory, object destruction) while clients perform local prediction for movement and animation. Cooperative actions (e.g., doors, pickups) use `[Command(requiresAuthority=false)]` calls for client-initiated interactions on server-owned objects (objects they don't own).
+
+Host-authoritative: All gameplay state is controlled by the server (`[Server]` attributes in `GameManager.cs` like `AddPlayer()`, AI updates in `NPCScript.cs` through `[Server]` blocks).
+
+Hybrid: **Client-side prediction** for movement (clients move locally via FixedUpdate, then NetworkTransformReliable syncs) while the server validates persistent state. Another example would be grabbing the keys and checking if it's valid locally and then asking the server to validate it.
+
+---
+
+### Performance Optimization
+- Designed specifically for **Android hardware**.  
+- Techniques implemented:
+  - **Level of Detail (LOD)** meshes on environment models.
+  - **Occlusion Culling** for hiding objects outside the direct camera's vision.
+  - **Progressive world loading** to avoid overloading the system.
+  - **Light Probes** + **Baked Lightmaps** for realistic indoor lighting at minimal runtime cost.
+
+Optimized to maintain 60+ FPS on mid-range Android devices
+
+---
+
+### Content Creation
+- Modeled the **main house** in **Blender** (exported as FBX).  
+- Designed the terrain and UI with free assets from various websites.  
+- Implemented adaptive soundscapes:
+  - Dynamic rain, waves, swamp wildlife.
+  - Ambient layers reacting to player proximity.
+  - Adaptive music based on player location.
+- Implemented VFX for:
+  - Missile explosion.
+  - Dam destruction.
+  - Smoke coming out of a boiler.
+
+---
+
+## Key Features
+- **Dynamic AI Perception**: NPCs react to player visibility and sound triggers in real-time.
+- **Progressive World Loading**: Terrain objects spawn progressively to avoid frame drops.
+- **Robust Network State Management**: Automatic cleanup and reconnection handling
+- **Adaptive Audio System**: Music and ambient sounds respond to player location.
+- **Inventory Synchronization**: Multiplayer inventory system with stacking and usage tracking.
+
+---
+
+## Challenges & Solutions
+- **Challenge:** Synchronizing AI state and perception in LAN co-op.  
+  **Solution:** Implemented host-authoritative AI control and event replication through Mirror `[Command]` / `[SyncVar]` calls.
+
+- **Challenge:** Maintaining stable performance on mid-range Android devices.  
+  **Solution:** Used LOD groups, occlusion culling, baked lighting and progressive world loading to reduce draw calls and GPU load.
+
+- **Challenge**: Players returning to menu could cause connection conflicts if network wasn't fully stopped.  
+  **Solution:** Stop network components one at a time with small delays between each and disable menu buttons during the process to avoid connection conflicts.
+
+---
+
+## Code Architecture
+```text
+Scripts/
+├── GameLogic/
+│   ├── DamHealth.cs
+│   ├── DoorAttachedToLockScript.cs
+│   ├── DoorScript.cs
+│   ├── LockScript.cs
+│   └── PortalScript.cs
+├── Manager/
+│   ├── CustomNetworkManager.cs
+│   ├── GameManager.cs
+│   ├── NetworkSpawner.cs
+│   └── UIManager.cs
+├── NPC/
+│   ├── NPCScript.cs
+│   ├── EnemyHealth.cs
+│   ├── FieldOfView.cs
+│   └── Behaviours/
+│       ├── Attack.cs
+│       ├── Chase.cs
+│       ├── Investigate.cs
+│       ├── Rest.cs
+│       └── Walk.cs
+├── Player&Inventory/
+│   ├── CameraScript.cs
+│   ├── FirePositionScript.cs
+│   ├── InventoryItem.cs
+│   ├── InventoryManager.cs
+│   ├── MinimapPlayerCamera.cs
+│   ├── MissileScript.cs
+│   └── PlayerMovement.cs
+└── Sounds/
+    ├── CrowCricketSoundScript.cs
+    ├── GramophoneScript.cs
+    ├── OceanSoundScript.cs
+    ├── SoundManager.cs
+    ├── SoundTriggerScript.cs
+    └── SwampFootstepsSoundScript.cs
+
+```
 
 ---
 
@@ -62,7 +156,6 @@ Core scripts in [`Scripts`](Scripts):
 
 ---
 
-## Connect
-
-**LinkedIn:** [Rafael Faustino](https://www.linkedin.com/in/rgtdfaustino)
-**Itch.io:** [Rafael Faustino](https://gamedevrafael.itch.io/locked-with-me)
+## Links
+[Play on Itch.io](https://gamedevrafael.itch.io/locked-with-me)  
+[Visit my LinkedIn](https://www.linkedin.com/in/rgtdfaustino)
